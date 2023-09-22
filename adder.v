@@ -4,10 +4,10 @@ module carry_lookahead_adder (a, b, sum, overflow);
     output reg[15:0] sum;
     output reg overflow;
     reg[15:0] c;
-    wire [15:0] p, q;
-    assign p = a + b;
+    wire [15:0] p, g;
+    assign p = a | b;
     assign g = a & b;
-    reg [3:0] P,G;
+    wire [3:0] P,G;
     assign P[0] = (p[3] & p[2]) & (p[1] & p[0]);
     assign P[1] = (p[7] & p[6]) & (p[5] & p[4]);
     assign P[2] = (p[11] & p[10]) & (p[9] & p[8]);
@@ -24,13 +24,13 @@ module carry_lookahead_adder (a, b, sum, overflow);
     integer i, j;
     always @(*) begin
         overflow <= (in[3] & P[3]) | G[3];
-        for (i = 0;i < 3; i = i + 1) begin
-            j = (i + 1) * 4;
+        for (i = 0;i < 4; i = i + 1) begin
+            j = i * 4;
             c[j] <= in[i];
             c[j+1] <= g[j] | (p[j] & in[i]);
-            c[j+2] <= g[j+1] | (g[j] & p[j+1]);
+            c[j+2] <= (g[j+1] | (g[j] & p[j+1])) | (in[i] & p[j] & p[j+1]);
             c[j+3] <= ((g[j+2] | (g[j+1] & p[j+2])) | (g[j] & p[j+1] & p[j+2])) | ((in[i] & p[j]) & (p[j+1] & p[j+2]));
         end
-        sum <= a ^ b ^ c;
+        sum = a ^ b ^ c;
     end 
 endmodule
